@@ -15,6 +15,7 @@ from kazoo.client import KazooClient
 app = Flask(__name__)
 app.secret_key = 'my secret key'
 app.config['SESSION_TYPE'] = 'filesystem'
+defaultZK = os.environ.get("ZOOKEEPER_SERVERS", "127.0.0.1:2181")
 
 bp = Blueprint('zookeeper_browser', __name__, template_folder="templates", static_folder="static")
 
@@ -106,8 +107,8 @@ def connect():
     connection_string = None
     if request.method == 'POST':
         connection_string = request.form.get('inputConStr', None)
-        if connection_string is None:
-            connection_string = "127.0.0.1:2181"
+        if connection_string is None or len(connection_string) < 1:
+            connection_string = defaultZK
 
     if connection_string is not None:
         # try to connect
@@ -126,7 +127,7 @@ def connect():
             # redirect to index
             return redirect(url_for('zookeeper_browser.index'))
 
-    return render_template('connect.html', connection_error=connection_error)
+    return render_template('connect.html', connection_error=connection_error, defaultZK=defaultZK)
 
 if __name__ == '__main__':
     #app.debug = True
